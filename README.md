@@ -83,13 +83,5 @@ The `.env` file is ignored by Git to protect your API keys. **Never** upload you
 - **AI Integration**: Leveraged LLMs to provide contextual utility (clothing suggestions) beyond raw data.
 - **Visual Design**: Followed "Glassmorphism" principles to create a premium, high-end feel.---
 
-<div align="center">
-  <h3>✨ Built by Kadari Uday ✨</h3>
-  <p><i>Transforming meteorological data into intelligent insights.</i></p>
-  
-  <a href="https://www.linkedin.com/in/kadariuday">
-    <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
-  </a>
-</div>
-
+✨ Built by Kadari Uday ✨
 ---
