@@ -56,7 +56,25 @@ A professional-grade, modern, and responsive Weather Web Application built with 
     - `app.js`: Main UI logic, favorites, and theme management.
     - `map.js`: Leaflet map integration and coordinate handling.
     - `location.js`: Geolocation and unit conversion logic.
+## 🚀 Deployment (Hosting)
 
+This application is ready to be hosted on **Render** (or Railway).
+
+### Steps to Deploy on Render:
+1.  **Connect GitHub**: Create a new **Web Service** on [Render](https://render.com) and connect this repository.
+2.  **Runtime Settings**:
+    - **Language**: `Python`
+    - **Build Command**: `pip install -r requirements.txt`
+    - **Start Command**: `gunicorn app:app`
+3.  **Environment Variables**:
+    Go to the **Environment** tab in your Render dashboard and add:
+    - `OPENWEATHER_API_KEY`: Your OpenWeather API Key.
+    - `GROQ_API_KEY`: Your Groq API Key.
+
+---
+
+### 🛡️ Security Note
+The `.env` file is ignored by Git to protect your API keys. **Never** upload your keys directly to GitHub. Always use environment variables in your hosting provider's dashboard.
 ## 💡 Developer Insights (Interview Talking Points)
 - **State Management**: Implemented client-side persistence for themes and favorites without external frameworks.
 - **Performance**: Utilized `ThreadPoolExecutor` in the backend to parallelize multiple API requests (Weather, Forecast, AQI, Pollen), significantly reducing page load time.
