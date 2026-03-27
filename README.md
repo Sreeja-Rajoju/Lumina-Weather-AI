@@ -1,5 +1,7 @@
 # Lumina Weather AI - Premium Intelligence Dashboard
 
+Maintained by **Kadari Uday**
+
 A professional-grade, modern, and responsive Weather Web Application built with Python, Flask, and the OpenWeather API, featuring AI-powered suggestions and interactive mapping.
 
 ## 🌟 Key Features
