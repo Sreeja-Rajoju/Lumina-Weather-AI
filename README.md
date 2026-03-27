@@ -1,58 +1,64 @@
-# Weather Dashboard - Flask Application
+# Lumina Weather AI - Premium Intelligence Dashboard
 
-A modern, responsive Weather Web Application built with Python, Flask, and the OpenWeather API.
+A professional-grade, modern, and responsive Weather Web Application built with Python, Flask, and the OpenWeather API, featuring AI-powered suggestions and interactive mapping.
 
-## Features
-- **Real-Time Data**: Fetches live weather information using OpenWeather API.
-- **Premium UI**: Clean, responsive design with Glassmorphism effects and micro-animations.
-- **Error Handling**: Graceful handling of invalid city names, empty inputs, and network failures.
-- **Mobile Friendly**: Fully responsive layout.
+## 🌟 Key Features
 
-## Technologies Used
-- **Backend**: Python, Flask, Requests
-- **Frontend**: HTML5, CSS3, Jinja2, Font Awesome, Google Fonts
-- **API**: OpenWeatherMap API
+- **Real-Time Meteorology**: Fetches live weather conditions, 5-day forecasts, and hourly trends using OpenWeather API.
+- **AI Outfit Guide**: Integrated **Groq AI** (Llama 3.3) to provide lightning-fast, personalized clothing suggestions based on current weather conditions.
+- **Interactive World Map**: Powered by **Leaflet.js**, allowing users to explore global weather patterns by clicking any location.
+- **Premium UI/UX**: Modern Glassmorphism-inspired design with:
+    - **Theme System**: Persisted Dark "SkySense Navy" and Light modes.
+    - **Unit Conversion**: Instant toggle between Celsius and Fahrenheit.
+    - **Favorites Manager**: Quick access to pinned cities.
+- **Robust Error Handling**: Graceful management of invalid inputs, API failures, and network issues.
+- **Mobile Optimized**: Fully responsive layout for all device sizes.
 
-## Setup Instructions
+## 🛠️ Technologies Used
 
-1. **Clone the project**
+- **Backend**: Python 3.13, Flask, Requests, Groq
+- **Frontend**: HTML5, CSS3 (Vanilla), JavaScript (ES6+), Leaflet.js
+- **APIs**: OpenWeatherMap API, Groq Cloud API, Open-Meteo (Pollen data)
+- **Icons & Fonts**: Font Awesome 6, Google Fonts (Outfit)
+
+## 🚀 Setup Instructions
+
+1. **Clone the Project**
    ```bash
-   # Navigate to the project directory
    cd "Weather Dashboard"
    ```
 
-2. **Install dependencies**
+2. **Install Dependencies**
    ```bash
-   pip install flask requests
+   pip install flask requests groq
    ```
 
-3. **Get an API Key**
-   - Sign up at [OpenWeatherMap](https://openweathermap.org/api).
-   - Generate a free API key (current weather data).
+3. **Get API Keys**
+   - **OpenWeatherMap**: [Get API Key here](https://openweathermap.org/api)
+   - **Groq Cloud**: [Get Groq API Key here](https://console.groq.com/keys)
 
-4. **Configure API Key**
+4. **Configure API Keys**
    - Open `app.py`.
-   - Replace `"YOUR_API_KEY"` with your actual key.
+   - Replace `API_KEY` (line 13) with your OpenWeather API key.
+   - Replace `GROQ_API_KEY` (line 19) with your Groq API key.
 
-5. **Run the application**
+5. **Run the Application**
    ```bash
    python app.py
    ```
    - Open your browser and navigate to `http://127.0.0.1:5000`.
 
-## Project Structure
-- `app.py`: Main Flask application and API logic.
-- `templates/index.html`: Main UI template.
-- `static/style.css`: Premium styling and animations.
-- `README.md`: Project documentation.
+## 📁 Project Structure
+- `app.py`: Core Flask application and API integration logic.
+- `templates/index.html`: Main dashboard template.
+- `static/`:
+    - `style.css`: Core design system and layout.
+    - `app.js`: Main UI logic, favorites, and theme management.
+    - `map.js`: Leaflet map integration and coordinate handling.
+    - `location.js`: Geolocation and unit conversion logic.
 
-## Deployment Suggestions
-- **Heroku**: Use `gunicorn` and a `Procfile`.
-- **Render/Railway**: Easy integration with GitHub repositories.
-- **AWS/GCP**: For more scalable deployments using Docker or App Engine.
-
-## Interview Talking Points
-- **Architecture**: Explained the Model-View-Controller (MVC) approach using Flask and Jinja2.
-- **Error Handling**: Highlighted how the app prevents crashes by validating user input and handling API status codes.
-- **User Experience**: Focused on "Glassmorphism" to provide a premium feel, which is a modern trend in UI/UX design.
-- **API Integration**: Demonstrated proficiency in handling asynchronous-like HTTP requests and parsing JSON data.
+## 💡 Developer Insights (Interview Talking Points)
+- **State Management**: Implemented client-side persistence for themes and favorites without external frameworks.
+- **Performance**: Utilized `ThreadPoolExecutor` in the backend to parallelize multiple API requests (Weather, Forecast, AQI, Pollen), significantly reducing page load time.
+- **AI Integration**: Leveraged LLMs to provide contextual utility (clothing suggestions) beyond raw data.
+- **Visual Design**: Followed "Glassmorphism" principles to create a premium, high-end feel.

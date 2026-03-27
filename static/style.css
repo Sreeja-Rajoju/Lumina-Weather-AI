@@ -1200,8 +1200,42 @@ button:active,
 
 .suggestions-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 1.5rem;
+}
+
+/* AI Summary Card */
+.ai-summary-card {
+    background: linear-gradient(135deg, rgba(124, 77, 255, 0.15), rgba(0, 0, 0, 0.2));
+    border: 1px solid var(--accent-glow);
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    animation: fadeInUp 0.8s ease backwards;
+}
+
+.ai-icon {
+    font-size: 2.2rem;
+    color: var(--accent-purple);
+    filter: drop-shadow(0 0 8px var(--accent-glow));
+}
+
+.ai-text h3 {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent-purple);
+    margin-bottom: 4px;
+}
+
+.ai-text p {
+    font-size: 1.1rem;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--text-primary);
 }
 
 .suggestion-card {
@@ -1224,11 +1258,21 @@ button:active,
 }
 
 .suggestion-card.men {
-    animation-delay: 0.1s;
+    animation-delay: 0.2s;
 }
 
 .suggestion-card.women {
-    animation-delay: 0.2s;
+    animation-delay: 0.3s;
+}
+
+.suggestion-card.activity {
+    animation-delay: 0.1s;
+    border-left: 3px solid #00d2ff;
+}
+
+.suggestion-card.activity .gender-icon {
+    background: rgba(0, 210, 255, 0.1);
+    color: #00d2ff;
 }
 
 .gender-icon {
@@ -1253,6 +1297,12 @@ button:active,
     font-size: 0.95rem;
     line-height: 1.4;
     color: var(--text-primary);
+}
+
+@media (max-width: 1024px) {
+    .suggestions-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 @media (max-width: 640px) {

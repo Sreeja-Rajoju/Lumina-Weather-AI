@@ -1,5 +1,13 @@
 // Favorite Cities Management
-let favorites = JSON.parse(localStorage.getItem('favoriteCities')) || [];
+const defaultFavorites = ['Dubai', 'Reykjavik', 'Mumbai', 'London', 'Yakutsk', 'Singapore'];
+let favorites = JSON.parse(localStorage.getItem('favoriteCities'));
+
+// Initialize with diverse cities if empty to test AI predictions
+if (!favorites || favorites.length === 0) {
+    favorites = defaultFavorites;
+    localStorage.setItem('favoriteCities', JSON.stringify(favorites));
+}
+
 let currentUnit = localStorage.getItem('tempUnit') || 'C';
 let currentTheme = localStorage.getItem('theme') || 'dark';
 let animationsEnabled = localStorage.getItem('animations') !== 'false';

@@ -3,22 +3,35 @@ from flask import Flask, render_template, request
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 import time
-import google.generativeai as genai
 import os
+from groq import Groq
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 
 app = Flask(__name__)
 
 # OpenWeather API Configuration
-API_KEY = "59e18a63e3539a96f2bd5418c79620b3"
+API_KEY = os.environ.get("OPENWEATHER_API_KEY")
 CURRENT_URL = "https://api.openweathermap.org/data/2.5/weather"
 FORECAST_URL = "https://api.openweathermap.org/data/2.5/forecast"
 AQI_URL = "http://api.openweathermap.org/data/2.5/air_pollution"
 
-# Gemini AI Configuration
-GEMINI_API_KEY = "AIzaSyBc8WVLoFvUfWNSDyOnArqxNWam_6UnV-U"
-if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
+# Groq AI Configuration (Replacing Gemini)
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+groq_client = None
+if GROQ_API_KEY:
+    try:
+        groq_client = Groq(api_key=GROQ_API_KEY)
+    except Exception as e:
+        print(f"Groq Init Error: {e}")
+
+# Legacy Gemini Config (Commented out)
+# GEMINI_API_KEY = "AIzaSyBc8WVLoFvUfWNSDyOnArqxNWam_6UnV-U"
+# if GEMINI_API_KEY:
+#     genai.configure(api_key=GEMINI_API_KEY)
 
 
 # Simple Cache
@@ -48,34 +61,47 @@ def get_smart_fallback(weather):
     
     return {"men": base, "women": base}
 
-def get_clothing_suggestions(weather):
-    if not GEMINI_API_KEY:
-        return {"men": "Set API key in app.py", "women": "Set API key in app.py"}
+def get_ai_insights(weather, aqi=None, pollen=None):
+    if not groq_client:
+        fallback = get_smart_fallback(weather)
+        return {**fallback, "summary": "Current patterns suggest standard " + weather['description'].lower() + ".", "activities": "Outdoor activities are fine with normal precautions."}
     
     try:
-        # Using flash-latest for better compatibility
-        model = genai.GenerativeModel('gemini-1.5-flash-latest')
+        # Construct weather context with optional data
+        aqi_str = f"AQI: {aqi['val']} ({aqi['label']})" if aqi else "AQI: Not available"
+        pollen_str = f"Pollen (Grass): {pollen['grass']}, (Tree): {pollen['tree']}" if pollen else "Pollen: Not available"
+
         prompt = f"""
         Weather: {weather['temp']}°C, {weather['description']}, {weather['rain_chance']}% rain.
-        Provide a simple comma-separated list of 2-3 essential clothing items for:
-        1. Men
-        2. Women
+        {aqi_str}, {pollen_str}, UV Index: {weather['uv_index']}.
         
-        ONLY use general terms: shorts, t-shirts, sweaters, jackets, hoodies, jeans, caps, sunglasses, gloves, scarves, boots.
-        Format MUST be JSON: {{"men": "item1, item2", "women": "item1, item2"}}
+        Provide a smart JSON object with:
+        1. "summary": A catchy, concise 1-sentence overview of the day's vibe (e.g., "A breezy, sun-kissed morning with a chance of puddles!")
+        2. "activities": A context-aware activity recommendation (e.g., "Perfect for a scenic jog," "High UV - stay in the shade between 11-3.")
+        3. "men": Comma-separated essentials (e.g., "Shorts, T-shirt")
+        4. "women": Comma-separated essentials (e.g., "Sundress, Sunglasses")
+        
+        ONLY use general terms for clothing: shorts, t-shirts, sweaters, jackets, hoodies, jeans, caps, sunglasses, gloves, scarves, boots.
+        Format MUST be JSON: {{"summary": "...", "activities": "...", "men": "...", "women": "..."}}
         """
-        response = model.generate_content(prompt)
+        
+        response = groq_client.chat.completions.create(
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt,
+                }
+            ],
+            model="llama-3.3-70b-versatile",
+            response_format={"type": "json_object"}
+        )
         
         import json
-        import re
-        text = response.text.strip()
-        json_match = re.search(r'\{.*\}', text, re.DOTALL)
-        if json_match:
-            return json.loads(json_match.group())
-        return json.loads(text)
+        return json.loads(response.choices[0].message.content)
     except Exception as e:
-        print(f"Gemini Error (using fallback): {e}")
-        return get_smart_fallback(weather)
+        print(f"Groq API Error: {e}")
+        fallback = get_smart_fallback(weather)
+        return {**fallback, "summary": "AI Insight unavailable.", "activities": "General outdoor safety advised."}
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -88,6 +114,8 @@ def index():
     
     city = "London"
     units = request.args.get("units", "metric")
+    result_payload = {}
+    insights = None
 
     if request.method == "POST":
         city = request.form.get("city")
@@ -143,8 +171,7 @@ def index():
                     future_aqi = executor.submit(requests.get, f"{AQI_URL}?lat={lat}&lon={lon}&appid={API_KEY}", timeout=3)
                     future_pollen = executor.submit(requests.get, f"https://air-quality-api.open-meteo.com/v1/air-quality?latitude={lat}&longitude={lon}&current=pm10,pm2_5,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&timezone=auto", timeout=3)
 
-                    # Process Weather Data
-                    # Get rain probability from current weather
+                    # Process Weather Data (Wait early as we need it for insights)
                     rain_chance = 0
                     if "rain" in data:
                         rain_chance = 80
@@ -178,13 +205,37 @@ def index():
                         "rain_chance": rain_chance
                     }
 
-                    # Process Forecast
+                    # Process AQI/Pollen for Insight prompt
+                    try:
+                        aqi_resp = future_aqi.result()
+                        if aqi_resp.status_code == 200:
+                            aqi_json = aqi_resp.json()
+                            aqi_val = aqi_json["list"][0]["main"]["aqi"]
+                            aqi_map = {1: "Good", 2: "Fair", 3: "Moderate", 4: "Poor", 5: "Very Poor"}
+                            aqi_data = {"val": aqi_val, "label": aqi_map.get(aqi_val, "Unknown")}
+                    except: pass
+
+                    try:
+                        om_resp = future_pollen.result()
+                        if om_resp.status_code == 200:
+                            om_json = om_resp.json()
+                            curr = om_json.get("current", {})
+                            pollen_data = {
+                                "pm10": curr.get("pm10", 0),
+                                "pm2_5": curr.get("pm2_5", 0),
+                                "grass": curr.get("grass_pollen", 0),
+                                "tree": curr.get("birch_pollen", 0)
+                            }
+                    except: pass
+
+                    # Generate Insights using all data point
+                    insights = get_ai_insights(weather_data, aqi_data, pollen_data)
+
+                    # Process Remaining Data
                     try:
                         fore_resp = future_forecast.result()
                         if fore_resp.status_code == 200:
                             f_data = fore_resp.json()
-                            # (Logic for forecast processing - simplified for brevity in plan but full in code)
-                            # ... Calculate rain prob ...
                             rain_count = 0
                             for item in f_data["list"][:8]:
                                 if "rain" in item or item["weather"][0]["main"].lower() in ["rain", "drizzle", "thunderstorm"]:
@@ -192,7 +243,6 @@ def index():
                             if rain_count > 0:
                                 weather_data["rain_chance"] = round(min(100, (rain_count / 8) * 100))
 
-                            # Hourly
                             forecast_list = []
                             for item in f_data["list"][:7]:
                                 forecast_list.append({
@@ -202,7 +252,6 @@ def index():
                                 })
                             forecast_data = forecast_list
 
-                            # Daily
                             daily_data = {}
                             for item in f_data["list"]:
                                 date = datetime.fromtimestamp(item["dt"]).strftime('%Y-%m-%d')
@@ -223,35 +272,6 @@ def index():
                             daily_forecast = daily_list
                     except: pass
 
-                    # Process AQI
-                    try:
-                        aqi_resp = future_aqi.result()
-                        if aqi_resp.status_code == 200:
-                            aqi_json = aqi_resp.json()
-                            aqi_val = aqi_json["list"][0]["main"]["aqi"]
-                            aqi_map = {1: "Good", 2: "Fair", 3: "Moderate", 4: "Poor", 5: "Very Poor"}
-                            aqi_data = {"val": aqi_val, "label": aqi_map.get(aqi_val, "Unknown")}
-                    except: pass
-
-                    # Process Pollen
-                    try:
-                        om_resp = future_pollen.result()
-                        if om_resp.status_code == 200:
-                            om_json = om_resp.json()
-                            curr = om_json.get("current", {})
-                            pollen_data = {
-                                "pm10": curr.get("pm10", 0),
-                                "pm2_5": curr.get("pm2_5", 0),
-                                "grass": curr.get("grass_pollen", 0),
-                                "tree": curr.get("birch_pollen", 0)
-                            }
-                    except: pass
-
-                    # 6. Fetch Clothing Suggestions from Gemini (Sequential after weather_data is ready but still in route)
-                    suggestions = get_clothing_suggestions(weather_data)
-
-                # Determine error if any critical fail (not really needed as we handle partials)
-                
                 # Cache the result
                 result_payload = {
                     "weather": weather_data, 
@@ -260,7 +280,7 @@ def index():
                     "error": error_message, 
                     "aqi": aqi_data, 
                     "pollen": pollen_data,
-                    "suggestions": suggestions
+                    "insights": insights
                 }
                 weather_cache[cache_key] = (result_payload, time.time())
 
@@ -272,13 +292,9 @@ def index():
         except requests.exceptions.RequestException:
             error_message = "Network error."
 
-
-
-
-
     return render_template("index.html", weather=weather_data, forecast=forecast_data, 
                          daily=daily_forecast, error=error_message, aqi=aqi_data, pollen=pollen_data,
-                         suggestions=result_payload.get("suggestions") if 'result_payload' in locals() else None)
+                         insights=insights)
 
 if __name__ == "__main__":
     app.run(debug=True)
