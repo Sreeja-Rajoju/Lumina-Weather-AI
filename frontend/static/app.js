@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', function () {
     updateFavoritesDisplay();
     initSidebarNavigation();
     initTheme();
-    initLocationButton();
     initSearchForm();
     
     // Check for city in URL params or default to favorites[3] (London)
