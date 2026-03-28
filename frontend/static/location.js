@@ -5,13 +5,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (locationBtn) {
         locationBtn.addEventListener('click', () => {
             if (navigator.geolocation) {
-                locationBtn.classList.add('loading'); // You can add CSS for spinning
+                locationBtn.classList.add('loading'); 
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
                         const lat = position.coords.latitude;
                         const lon = position.coords.longitude;
-                        // Redirect to backend with lat/lon
-                        window.location.href = `/?lat=${lat}&lon=${lon}`;
+                        
+                        // Call fetchWeatherByCoords from app.js
+                        if (typeof fetchWeatherByCoords === 'function') {
+                            fetchWeatherByCoords(lat, lon);
+                        } else {
+                            // Fallback to reload if not ready
+                            window.location.href = `./?lat=${lat}&lon=${lon}`;
+                        }
+                        locationBtn.classList.remove('loading');
                     },
                     (error) => {
                         alert("Unable to retrieve your location. Please ensure location services are enabled.");
@@ -22,19 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 alert("Geolocation is not supported by this browser.");
             }
-        });
-    }
-
-    // Unit Toggle Handler
-    const unitToggle = document.querySelector('.unit-toggle');
-    if (unitToggle) {
-        unitToggle.addEventListener('click', () => {
-            const currentUrl = new URL(window.location.href);
-            const currentUnits = currentUrl.searchParams.get('units') || 'metric';
-            const newUnits = currentUnits === 'metric' ? 'imperial' : 'metric';
-            
-            currentUrl.searchParams.set('units', newUnits);
-            window.location.href = currentUrl.toString();
         });
     }
 });

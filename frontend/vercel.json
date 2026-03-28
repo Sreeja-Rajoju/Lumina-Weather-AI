@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "name": "lumina-weather-ui",
+  "cleanUrls": true,
+  "framework": null,
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
