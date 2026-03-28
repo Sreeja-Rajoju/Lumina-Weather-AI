@@ -2,12 +2,32 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyc
+
+# Virtual Environments
 venv/
 .venv/
+env/
 
-# Secrets
+# Secrets & Environment
 .env
+*.env
 
-# OS
+# OS Files
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Distribution / Packaging
+dist/
+build/
+*.egg-info/

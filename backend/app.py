@@ -10,8 +10,15 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+# Resolve paths: backend/ is the Python root, frontend/ lives one level up
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_DIR = os.path.join(BASE_DIR, "..", "frontend")
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    template_folder=os.path.join(FRONTEND_DIR, "templates"),
+    static_folder=os.path.join(FRONTEND_DIR, "static")
+)
 
 # OpenWeather API Configuration
 API_KEY = os.environ.get("OPENWEATHER_API_KEY")

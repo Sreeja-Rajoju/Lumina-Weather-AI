@@ -1,87 +1,123 @@
-# Lumina Weather AI - Premium Intelligence Dashboard
+# ⚡ Lumina Weather AI
 
-Maintained by **Kadari Uday**
+> A professional-grade, full-stack AI weather dashboard with real-time meteorological data, AI insights, and an interactive world map.
 
-A professional-grade, modern, and responsive Weather Web Application built with Python, Flask, and the OpenWeather API, featuring AI-powered suggestions and interactive mapping.
+![Lumina Weather AI](frontend/static/cover.png)
 
-## 🌟 Key Features
-
-- **Real-Time Meteorology**: Fetches live weather conditions, 5-day forecasts, and hourly trends using OpenWeather API.
-- **AI Outfit Guide**: Integrated **Groq AI** (Llama 3.3) to provide lightning-fast, personalized clothing suggestions based on current weather conditions.
-- **Interactive World Map**: Powered by **Leaflet.js**, allowing users to explore global weather patterns by clicking any location.
-- **Premium UI/UX**: Modern Glassmorphism-inspired design with:
-    - **Theme System**: Persisted Dark "SkySense Navy" and Light modes.
-    - **Unit Conversion**: Instant toggle between Celsius and Fahrenheit.
-    - **Favorites Manager**: Quick access to pinned cities.
-- **Robust Error Handling**: Graceful management of invalid inputs, API failures, and network issues.
-- **Mobile Optimized**: Fully responsive layout for all device sizes.
-
-## 🛠️ Technologies Used
-
-- **Backend**: Python 3.13, Flask, Requests, Groq
-- **Frontend**: HTML5, CSS3 (Vanilla), JavaScript (ES6+), Leaflet.js
-- **APIs**: OpenWeatherMap API, Groq Cloud API, Open-Meteo (Pollen data)
-- **Icons & Fonts**: Font Awesome 6, Google Fonts (Outfit)
-
-## 🚀 Setup Instructions
-
-1. **Clone the Project**
-   ```bash
-   cd "Weather Dashboard"
-   ```
-
-2. **Install Dependencies**
-   ```bash
-   pip install flask requests groq
-   ```
-
-3. **Get API Keys**
-   - **OpenWeatherMap**: [Get API Key here](https://openweathermap.org/api)
-   - **Groq Cloud**: [Get Groq API Key here](https://console.groq.com/keys)
-
-4. **Configure API Keys**
-   - Open `app.py`.
-   - Replace `API_KEY` (line 13) with your OpenWeather API key.
-   - Replace `GROQ_API_KEY` (line 19) with your Groq API key.
-
-5. **Run the Application**
-   ```bash
-   python app.py
-   ```
-   - Open your browser and navigate to `http://127.0.0.1:5000`.
+---
 
 ## 📁 Project Structure
-- `app.py`: Core Flask application and API integration logic.
-- `templates/index.html`: Main dashboard template.
-- `static/`:
-    - `style.css`: Core design system and layout.
-    - `app.js`: Main UI logic, favorites, and theme management.
-    - `map.js`: Leaflet map integration and coordinate handling.
-    - `location.js`: Geolocation and unit conversion logic.
-## 🚀 Deployment (Hosting)
 
-This application is ready to be hosted on **Render** (or Railway).
-
-### Steps to Deploy on Render:
-1.  **Connect GitHub**: Create a new **Web Service** on [Render](https://render.com) and connect this repository.
-2.  **Runtime Settings**:
-    - **Language**: `Python`
-    - **Build Command**: `pip install -r requirements.txt`
-    - **Start Command**: `gunicorn app:app`
-3.  **Environment Variables**:
-    Go to the **Environment** tab in your Render dashboard and add:
-    - `OPENWEATHER_API_KEY`: Your OpenWeather API Key.
-    - `GROQ_API_KEY`: Your Groq API Key.
+```
+Lumina-Weather-AI/
+│
+├── backend/                    # Python / Flask server
+│   ├── app.py                  # Main Flask application & API routes
+│   ├── debug_weather.py        # Debug & test utility script
+│   ├── requirements.txt        # Python dependencies
+│   ├── Procfile                # Gunicorn config (for deployment)
+│   ├── .env                    # API keys (not committed to git)
+│   └── README.md               # Backend-specific docs
+│
+├── frontend/                   # HTML, CSS & JavaScript UI
+│   ├── templates/
+│   │   └── index.html          # Jinja2 template (rendered by Flask)
+│   ├── static/
+│   │   ├── style.css           # Core design system & layout
+│   │   ├── theme.css           # Dark / light theme variables
+│   │   ├── map.css             # Leaflet map modal styles
+│   │   ├── app.js              # Dashboard logic & interactions
+│   │   ├── app_extra.js        # Additional UI helpers
+│   │   ├── map.js              # Interactive map (Leaflet.js)
+│   │   ├── location.js         # Browser geolocation support
+│   │   ├── favicon.jpg         # App favicon
+│   │   └── cover.png           # Project cover image
+│   └── README.md               # Frontend-specific docs
+│
+├── .gitignore
+└── README.md                   ← You are here
+```
 
 ---
 
-### 🛡️ Security Note
-The `.env` file is ignored by Git to protect your API keys. **Never** upload your keys directly to GitHub. Always use environment variables in your hosting provider's dashboard.
-## 💡 Developer Insights (Interview Talking Points)
-- **State Management**: Implemented client-side persistence for themes and favorites without external frameworks.
-- **Performance**: Utilized `ThreadPoolExecutor` in the backend to parallelize multiple API requests (Weather, Forecast, AQI, Pollen), significantly reducing page load time.
-- **AI Integration**: Leveraged LLMs to provide contextual utility (clothing suggestions) beyond raw data.
-- **Visual Design**: Followed "Glassmorphism" principles to create a premium, high-end feel.---
+## 🚀 Features
 
-✨ Built by Kadari Uday ✨
+- 🌍 **Real-Time Weather** — Live data for any city via OpenWeatherMap API
+- 🤖 **AI Smart Insights** — Outfit recommendations & activity tips via Groq (LLaMA 3.3 70B)
+- 🗺️ **Interactive World Map** — Click anywhere on the map to get local weather (Leaflet.js)
+- 📊 **5-Day Forecast** — Daily and hourly breakdown
+- 🌬️ **AQI & Pollen** — Air quality index and pollen count via Open-Meteo
+- ☀️ **UV Index** — Real-time UV tracking
+- 🌙 **Dark / Light Mode** — Persistent theme toggling (localStorage)
+- 🌡️ **Unit Toggle** — Instant °C ↔ °F switching
+- ❤️ **Favorites Manager** — Pin cities for quick access
+- 📍 **Geolocation** — One-click "Use My Location" support
+
 ---
+
+## ⚙️ Setup & Installation
+
+### Prerequisites
+- Python 3.9+
+- A free [OpenWeatherMap API key](https://openweathermap.org/api)
+- A free [Groq API key](https://console.groq.com) (for AI insights)
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/KadariUday/Lumina-Weather-AI.git
+cd Lumina-Weather-AI
+```
+
+### 2. Set Up the Backend
+```bash
+cd backend
+python -m venv venv
+venv\Scripts\activate        # Windows
+# source venv/bin/activate   # macOS/Linux
+pip install -r requirements.txt
+```
+
+### 3. Configure Environment Variables
+Create a `.env` file inside the `backend/` folder:
+```env
+OPENWEATHER_API_KEY=your_openweather_key_here
+GROQ_API_KEY=your_groq_key_here
+```
+
+### 4. Run the Application
+```bash
+# From the backend/ directory:
+python app.py
+```
+Then open **http://localhost:5000** in your browser.
+
+---
+
+## 🌐 Deployment (Heroku / Render)
+
+The `Procfile` in `backend/` is pre-configured for Gunicorn:
+```
+web: gunicorn app:app
+```
+Set `OPENWEATHER_API_KEY` and `GROQ_API_KEY` as environment variables in your hosting dashboard.
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer     | Technology                        |
+|-----------|-----------------------------------|
+| Backend   | Python, Flask, Gunicorn           |
+| AI        | Groq API (LLaMA 3.3 70B)          |
+| Weather   | OpenWeatherMap API, Open-Meteo    |
+| Frontend  | HTML5, CSS3, Vanilla JavaScript   |
+| Map       | Leaflet.js                        |
+| Icons     | Font Awesome 6                    |
+| Fonts     | Google Fonts (Outfit)             |
+
+---
+
+## 👨‍💻 Author
+
+**Kadari Uday**
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?logo=linkedin)](https://www.linkedin.com/in/kadariuday)
