@@ -1,10 +1,12 @@
 import requests
+import json
+import re
 from flask import Flask, render_template, request
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 import time
 import os
-from groq import Groq
+from google import genai
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -26,19 +28,16 @@ CURRENT_URL = "https://api.openweathermap.org/data/2.5/weather"
 FORECAST_URL = "https://api.openweathermap.org/data/2.5/forecast"
 AQI_URL = "http://api.openweathermap.org/data/2.5/air_pollution"
 
-# Groq AI Configuration (Replacing Gemini)
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
-groq_client = None
-if GROQ_API_KEY:
+# Google GenAI Configuration (Gemma 3 27B IT)
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+gemini_client = None
+GEMMA_MODEL = "gemma-3-27b-it"
+if GEMINI_API_KEY:
     try:
-        groq_client = Groq(api_key=GROQ_API_KEY)
+        gemini_client = genai.Client(api_key=GEMINI_API_KEY)
+        print(f"[OK] Google GenAI initialized with model: {GEMMA_MODEL}")
     except Exception as e:
-        print(f"Groq Init Error: {e}")
-
-# Legacy Gemini Config (Commented out)
-# GEMINI_API_KEY = "AIzaSyBc8WVLoFvUfWNSDyOnArqxNWam_6UnV-U"
-# if GEMINI_API_KEY:
-#     genai.configure(api_key=GEMINI_API_KEY)
+        print(f"[ERROR] Google GenAI Init Error: {e}")
 
 
 # Simple Cache
@@ -69,7 +68,7 @@ def get_smart_fallback(weather):
     return {"men": base, "women": base}
 
 def get_ai_insights(weather, aqi=None, pollen=None):
-    if not groq_client:
+    if not gemini_client:
         fallback = get_smart_fallback(weather)
         return {**fallback, "summary": "Current patterns suggest standard " + weather['description'].lower() + ".", "activities": "Outdoor activities are fine with normal precautions."}
     
@@ -78,35 +77,36 @@ def get_ai_insights(weather, aqi=None, pollen=None):
         aqi_str = f"AQI: {aqi['val']} ({aqi['label']})" if aqi else "AQI: Not available"
         pollen_str = f"Pollen (Grass): {pollen['grass']}, (Tree): {pollen['tree']}" if pollen else "Pollen: Not available"
 
-        prompt = f"""
-        Weather: {weather['temp']}°C, {weather['description']}, {weather['rain_chance']}% rain.
-        {aqi_str}, {pollen_str}, UV Index: {weather['uv_index']}.
+        prompt = f"""You are a weather assistant. Based on the following weather data, respond with ONLY a valid JSON object and nothing else.
+
+Weather: {weather['temp']}°C, {weather['description']}, {weather['rain_chance']}% rain.
+{aqi_str}, {pollen_str}, UV Index: {weather['uv_index']}.
+
+Respond with this exact JSON structure:
+{{"summary": "A catchy 1-sentence overview of the day", "activities": "A context-aware activity recommendation", "men": "Comma-separated clothing essentials for men", "women": "Comma-separated clothing essentials for women"}}
+
+ONLY use general clothing terms: shorts, t-shirts, sweaters, jackets, hoodies, jeans, caps, sunglasses, gloves, scarves, boots.
+Do NOT include any explanation, markdown, or code fences. Output the raw JSON object only."""
         
-        Provide a smart JSON object with:
-        1. "summary": A catchy, concise 1-sentence overview of the day's vibe (e.g., "A breezy, sun-kissed morning with a chance of puddles!")
-        2. "activities": A context-aware activity recommendation (e.g., "Perfect for a scenic jog," "High UV - stay in the shade between 11-3.")
-        3. "men": Comma-separated essentials (e.g., "Shorts, T-shirt")
-        4. "women": Comma-separated essentials (e.g., "Sundress, Sunglasses")
-        
-        ONLY use general terms for clothing: shorts, t-shirts, sweaters, jackets, hoodies, jeans, caps, sunglasses, gloves, scarves, boots.
-        Format MUST be JSON: {{"summary": "...", "activities": "...", "men": "...", "women": "..."}}
-        """
-        
-        response = groq_client.chat.completions.create(
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt,
-                }
-            ],
-            model="llama-3.3-70b-versatile",
-            response_format={"type": "json_object"}
+        response = gemini_client.models.generate_content(
+            model=GEMMA_MODEL,
+            contents=prompt
         )
         
-        import json
-        return json.loads(response.choices[0].message.content)
+        response_text = response.text.strip()
+        
+        # Try to parse JSON directly first
+        try:
+            return json.loads(response_text)
+        except json.JSONDecodeError:
+            # Fallback: extract JSON from response using regex
+            json_match = re.search(r'\{[^{}]*\}', response_text, re.DOTALL)
+            if json_match:
+                return json.loads(json_match.group())
+            raise ValueError(f"Could not parse JSON from response: {response_text[:200]}")
+            
     except Exception as e:
-        print(f"Groq API Error: {e}")
+        print(f"Gemma AI Error: {e}")
         fallback = get_smart_fallback(weather)
         return {**fallback, "summary": "AI Insight unavailable.", "activities": "General outdoor safety advised."}
 

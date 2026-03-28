@@ -1,6 +1,6 @@
 # ⚡ Lumina Weather AI
 
-> A professional-grade, full-stack AI weather dashboard with real-time meteorological data, AI insights, and an interactive world map.
+> A professional-grade, full-stack AI weather dashboard with real-time meteorological data, Gemma-powered insights, and an interactive world map.
 
 ![Lumina Weather AI](frontend/static/cover.png)
 
@@ -13,7 +13,6 @@ Lumina-Weather-AI/
 │
 ├── backend/                    # Python / Flask server
 │   ├── app.py                  # Main Flask application & API routes
-│   ├── debug_weather.py        # Debug & test utility script
 │   ├── requirements.txt        # Python dependencies
 │   ├── Procfile                # Gunicorn config (for deployment)
 │   ├── .env                    # API keys (not committed to git)
@@ -43,7 +42,7 @@ Lumina-Weather-AI/
 ## 🚀 Features
 
 - 🌍 **Real-Time Weather** — Live data for any city via OpenWeatherMap API
-- 🤖 **AI Smart Insights** — Outfit recommendations & activity tips via Groq (LLaMA 3.3 70B)
+- 🤖 **AI Smart Insights** — Outfit recommendations & activity tips powered by Google Gemma 3 27B
 - 🗺️ **Interactive World Map** — Click anywhere on the map to get local weather (Leaflet.js)
 - 📊 **5-Day Forecast** — Daily and hourly breakdown
 - 🌬️ **AQI & Pollen** — Air quality index and pollen count via Open-Meteo
@@ -60,7 +59,7 @@ Lumina-Weather-AI/
 ### Prerequisites
 - Python 3.9+
 - A free [OpenWeatherMap API key](https://openweathermap.org/api)
-- A free [Groq API key](https://console.groq.com) (for AI insights)
+- A free [Google AI API key](https://aistudio.google.com/apikey) (for Gemma AI insights)
 
 ### 1. Clone the Repository
 ```bash
@@ -81,7 +80,7 @@ pip install -r requirements.txt
 Create a `.env` file inside the `backend/` folder:
 ```env
 OPENWEATHER_API_KEY=your_openweather_key_here
-GROQ_API_KEY=your_groq_key_here
+GEMINI_API_KEY=your_gemini_key_here
 ```
 
 ### 4. Run the Application
@@ -99,21 +98,21 @@ The `Procfile` in `backend/` is pre-configured for Gunicorn:
 ```
 web: gunicorn app:app
 ```
-Set `OPENWEATHER_API_KEY` and `GROQ_API_KEY` as environment variables in your hosting dashboard.
+Set `OPENWEATHER_API_KEY` and `GEMINI_API_KEY` as environment variables in your hosting dashboard.
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer     | Technology                        |
-|-----------|-----------------------------------|
-| Backend   | Python, Flask, Gunicorn           |
-| AI        | Groq API (LLaMA 3.3 70B)          |
-| Weather   | OpenWeatherMap API, Open-Meteo    |
-| Frontend  | HTML5, CSS3, Vanilla JavaScript   |
-| Map       | Leaflet.js                        |
-| Icons     | Font Awesome 6                    |
-| Fonts     | Google Fonts (Outfit)             |
+| Layer     | Technology                          |
+|-----------|-------------------------------------|
+| Backend   | Python, Flask, Gunicorn             |
+| AI        | Google Gemma 3 27B IT (via GenAI)   |
+| Weather   | OpenWeatherMap API, Open-Meteo      |
+| Frontend  | HTML5, CSS3, Vanilla JavaScript     |
+| Map       | Leaflet.js                          |
+| Icons     | Font Awesome 6                      |
+| Fonts     | Google Fonts (Outfit)               |
 
 ---
 

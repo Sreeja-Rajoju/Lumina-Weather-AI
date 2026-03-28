@@ -5,8 +5,7 @@ This folder contains the **Flask Python backend** for the Lumina Weather AI dash
 ## Structure
 ```
 backend/
-├── app.py              # Main Flask application
-├── debug_weather.py    # Debug/test script
+├── app.py              # Main Flask application (Gemma 3 27B IT for AI insights)
 ├── requirements.txt    # Python dependencies
 ├── Procfile            # Gunicorn production server config
 └── .env                # API keys (not committed to git)
@@ -28,7 +27,7 @@ backend/
 3. Add your API keys to `.env`:
    ```
    OPENWEATHER_API_KEY=your_key_here
-   GROQ_API_KEY=your_key_here
+   GEMINI_API_KEY=your_key_here
    ```
 
 ## Running
