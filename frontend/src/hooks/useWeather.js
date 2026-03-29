@@ -4,7 +4,7 @@ import axios from 'axios';
 const CONFIG = {
     API_BASE_URL: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
         ? 'http://127.0.0.1:5000' 
-        : 'https://lumina-weather-ai.onrender.com', 
+        : import.meta.env.VITE_API_URL || 'https://lumina-weather-ai-1.onrender.com', 
 };
 
 export function useWeather(defaultCity = 'London') {
