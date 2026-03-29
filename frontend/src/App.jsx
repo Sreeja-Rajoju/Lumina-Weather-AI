@@ -7,6 +7,7 @@ import { AIInsights } from './components/AIInsights';
 import { Highlights } from './components/Highlights';
 import { FavoritesPage } from './components/FavoritesPage';
 import { DetailedForecast } from './components/DetailedForecast';
+import { SettingsPage } from './components/SettingsPage';
 import { WeatherMapModal } from './components/WeatherMapModal';
 import { useWeather } from './hooks/useWeather';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -72,6 +73,18 @@ function App() {
     };
 
     const renderMainContent = () => {
+        if (activeSection === 'settings') {
+            return (
+                <SettingsPage 
+                    units={units} 
+                    onToggleUnit={toggleUnits} 
+                    theme={theme}
+                    onThemeToggle={handleThemeToggle}
+                    onClearFavorites={clearAllData}
+                />
+            );
+        }
+
         if (activeSection === 'favorites') {
             return (
                 <FavoritesPage 
@@ -86,29 +99,41 @@ function App() {
         }
 
         if (activeSection === 'forecast') {
+            if (!data) return (
+                <div className="empty-state">
+                    <i className="fas fa-cloud-sun" style={{ fontSize: '4rem', opacity: 0.2 }}></i>
+                    <h2>No Forecast Data</h2>
+                    <p>Load a city to see the detailed 5-day forecast.</p>
+                </div>
+            );
             return <DetailedForecast daily={data?.daily} />;
         }
 
-        if (activeSection === 'settings') {
+        // Default Dashboard View
+        if (loading && !data) {
             return (
-                <SettingsPage 
-                    units={units} 
-                    onToggleUnit={toggleUnits} 
-                    theme={theme}
-                    onThemeToggle={handleThemeToggle}
-                    onClearFavorites={clearAllData}
-                />
+                <div className="loading-overlay-inline">
+                    <div className="loader"></div>
+                    <p>Fetching weather insights...</p>
+                </div>
             );
         }
 
-        // Default Dashboard View
+        if (!data) {
+            return (
+                <div className="empty-state">
+                    <i className="fas fa-triangle-exclamation" style={{ fontSize: '4rem', color: '#ff4757', opacity: 0.5 }}></i>
+                    <h2>Disconnected</h2>
+                    <p>{error || "Unable to fetch data. Please check your connection."}</p>
+                    <button className="contact-btn-premium" onClick={() => fetchWeather({ city: 'London' })} style={{ marginTop: '1rem' }}>
+                        Retry Connection
+                    </button>
+                </div>
+            );
+        }
+
         return (
-            <motion.div
-                key="dashboard"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="dashboard-grid"
-            >
+            <div className="dashboard-grid">
                 <div className="grid-left">
                     <WeatherCard
                         weather={data.weather}
@@ -138,7 +163,10 @@ function App() {
                                 <p className="no-favorites">No favorites yet. Click the heart icon to add cities!</p>
                             ) : (
                                 favorites.map(city => (
-                                    <div key={city} className="fav-city-item" onClick={() => fetchWeather({ city })}>
+                                    <div key={city} className="fav-city-item" onClick={() => {
+                                        fetchWeather({ city });
+                                        setActiveSection('dashboard');
+                                    }}>
                                         <div className="fav-city-name">
                                             <i className="fas fa-location-dot"></i>
                                             {city}
@@ -149,7 +177,7 @@ function App() {
                         </div>
                     </section>
                 </div>
-            </motion.div>
+            </div>
         );
     };
 
@@ -205,30 +233,15 @@ function App() {
                 {error && <div className="error-toast">{error}</div>}
 
                 <AnimatePresence mode="wait">
-                    {loading && !data ? (
-                        <motion.div
-                            key="loading"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="loading-overlay"
-                        >
-                            <div className="loader"></div>
-                            <p>Initial connection...</p>
-                        </motion.div>
-                    ) : data && (
-                        <AnimatePresence mode="wait">
-                            <motion.div
-                                key={activeSection}
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                transition={{ duration: 0.3 }}
-                            >
-                                {renderMainContent()}
-                            </motion.div>
-                        </AnimatePresence>
-                    )}
+                    <motion.div
+                        key={activeSection}
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 1.02 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        {renderMainContent()}
+                    </motion.div>
                 </AnimatePresence>
 
                 <footer className="dashboard-footer">
