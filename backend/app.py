@@ -26,15 +26,25 @@ AQI_URL = "http://api.openweathermap.org/data/2.5/air_pollution"
 GEO_URL = "http://api.openweathermap.org/geo/1.0/reverse"
 
 # Google GenAI Configuration (Gemma 3 27B IT)
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-gemini_client = None
+GEMINI_API_KEYS_RAW = os.environ.get("GEMINI_API_KEYS", "")
+GEMINI_API_KEYS = [k.strip() for k in GEMINI_API_KEYS_RAW.split(",") if k.strip()]
 GEMMA_MODEL = "gemma-3-27b-it"
-if GEMINI_API_KEY:
+
+def get_gemini_client(api_key):
+    if not api_key:
+        return None
     try:
-        gemini_client = genai.Client(api_key=GEMINI_API_KEY)
-        print(f"[OK] Google GenAI initialized with model: {GEMMA_MODEL}")
+        client = genai.Client(api_key=api_key)
+        return client
     except Exception as e:
-        print(f"[ERROR] Google GenAI Init Error: {e}")
+        print(f"[ERROR] Failed to init Gemini with key {api_key[:5]}... : {e}")
+        return None
+
+# Initial client setup
+current_key_index = 0
+gemini_client = get_gemini_client(GEMINI_API_KEYS[0]) if GEMINI_API_KEYS else None
+if gemini_client:
+    print(f"[OK] Google GenAI initialized with model: {GEMMA_MODEL} (Key 1)")
 
 
 # Simple Cache
@@ -62,15 +72,31 @@ def get_smart_fallback(weather):
     return {"men": base, "women": base}
 
 def get_ai_insights(weather, aqi=None, pollen=None):
-    if not gemini_client:
-        fallback = get_smart_fallback(weather)
-        return {**fallback, "summary": "Current patterns suggest standard " + weather['description'].lower() + ".", "activities": "Outdoor activities are fine with normal precautions."}
+    global gemini_client, current_key_index
     
-    try:
-        aqi_str = f"AQI: {aqi['val']} ({aqi['label']})" if aqi else "AQI: Not available"
-        pollen_str = f"Pollen (Grass): {pollen['grass']}, (Tree): {pollen['tree']}" if pollen else "Pollen: Not available"
+    if not GEMINI_API_KEYS:
+        fallback = get_smart_fallback(weather)
+        return {**fallback, "summary": "AI Insight unavailable (No API Keys).", "activities": "General outdoor safety advised."}
 
-        prompt = f"""You are a weather assistant. Based on the following weather data, respond with ONLY a valid JSON object and nothing else.
+    # Attempt with current client, then try next keys if Quota Exceeded
+    initial_index = current_key_index
+    for i in range(len(GEMINI_API_KEYS)):
+        idx = (initial_index + i) % len(GEMINI_API_KEYS)
+        current_key = GEMINI_API_KEYS[idx]
+        
+        # Refresh client if key changed
+        if idx != current_key_index or not gemini_client:
+            gemini_client = get_gemini_client(current_key)
+            current_key_index = idx
+            
+        if not gemini_client:
+            continue
+
+        try:
+            aqi_str = f"AQI: {aqi['val']} ({aqi['label']})" if aqi else "AQI: Not available"
+            pollen_str = f"Pollen (Grass): {pollen['grass']}, (Tree): {pollen['tree']}" if pollen else "Pollen: Not available"
+
+            prompt = f"""You are a weather assistant. Based on the following weather data, respond with ONLY a valid JSON object and nothing else.
 
 Weather: {weather['temp']}°C, {weather['description']}, {weather['rain_chance']}% rain.
 {aqi_str}, {pollen_str}, UV Index: {weather['uv_index']}.
@@ -80,26 +106,35 @@ Respond with this exact JSON structure:
 
 ONLY use general clothing terms: shorts, t-shirts, sweaters, jackets, hoodies, jeans, caps, sunglasses, gloves, scarves, boots.
 Do NOT include any explanation, markdown, or code fences. Output the raw JSON object only."""
-        
-        response = gemini_client.models.generate_content(
-            model=GEMMA_MODEL,
-            contents=prompt
-        )
-        
-        response_text = response.text.strip()
-        
-        try:
-            return json.loads(response_text)
-        except json.JSONDecodeError:
-            json_match = re.search(r'\{[^{}]*\}', response_text, re.DOTALL)
-            if json_match:
-                return json.loads(json_match.group())
-            raise ValueError(f"Could not parse JSON from response: {response_text[:200]}")
             
-    except Exception as e:
-        print(f"Gemma AI Error: {e}")
-        fallback = get_smart_fallback(weather)
-        return {**fallback, "summary": "AI Insight unavailable.", "activities": "General outdoor safety advised."}
+            response = gemini_client.models.generate_content(
+                model=GEMMA_MODEL,
+                contents=prompt
+            )
+            
+            response_text = response.text.strip()
+            
+            try:
+                data = json.loads(response_text)
+                return data
+            except json.JSONDecodeError:
+                json_match = re.search(r'\{[^{}]*\}', response_text, re.DOTALL)
+                if json_match:
+                    return json.loads(json_match.group())
+                raise ValueError("Could not parse JSON")
+                
+        except Exception as e:
+            error_msg = str(e).lower()
+            if "quota" in error_msg or "429" in error_msg or "limit" in error_msg:
+                print(f"[!] Key {idx+1} exceeded. Switching to next key...")
+                continue # Try next key
+            else:
+                print(f"Gemma AI Error (Key {idx+1}): {e}")
+                break # Non-quota error, don't retry
+
+    # Absolute fallback if all keys fail or error occurred
+    fallback = get_smart_fallback(weather)
+    return {**fallback, "summary": "AI Insight currently unavailable.", "activities": "General outdoor safety advised."}
 
 
 # ─── Health Check ───
@@ -219,7 +254,8 @@ def api_weather():
                         pollen_data = {"pm10": curr.get("pm10", 0), "pm2_5": curr.get("pm2_5", 0), "grass": curr.get("grass_pollen", 0), "tree": curr.get("birch_pollen", 0)}
                 except: pass
 
-                insights = get_ai_insights(weather_data, aqi_data, pollen_data)
+                # AI Insights are now fetched separately for better performance
+                insights = None
 
                 # Forecast
                 forecast_data = []
@@ -245,6 +281,49 @@ def api_weather():
             return jsonify(res)
 
         return jsonify({"error": f"City {city} not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/ai-insights", methods=["GET"])
+def api_ai_insights():
+    city = flask_request.args.get("city", "London")
+    units = flask_request.args.get("units", "metric")
+    
+    # Try to get from cache first
+    cache_key = f"{city}_{units}"
+    cached_data = weather_cache.get(cache_key)
+    
+    # If cached and contains insights, return immediately
+    if cached_data and cached_data[0].get("insights") and (time.time() - cached_data[1] < CACHE_DURATION):
+        return jsonify(cached_data[0]["insights"])
+
+    # If no cache or insights, calculate (this part takes time)
+    try:
+        # We need the base weather data for the AI prompt
+        params = {"q": city, "appid": API_KEY, "units": units}
+        resp = requests.get(CURRENT_URL, params=params, timeout=5)
+        if resp.status_code != 200:
+            return jsonify({"error": "City not found"}), 404
+            
+        data = resp.json()
+        weather_data = {
+            "temp": round(data["main"]["temp"]),
+            "description": data["weather"][0]["description"],
+            "rain_chance": 40 if "rain" in data else 0, # Simple estimate
+            "uv_index": 5 # Placeholder for fast fallback if needed
+        }
+        
+        # AQI and Pollen if available in cache, otherwise None
+        aqi_data = cached_data[0].get("aqi") if cached_data else None
+        pollen_data = cached_data[0].get("pollen") if cached_data else None
+        
+        insights = get_ai_insights(weather_data, aqi_data, pollen_data)
+        
+        # Update cache with insights if possible
+        if cached_data:
+            cached_data[0]["insights"] = insights
+            
+        return jsonify(insights)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

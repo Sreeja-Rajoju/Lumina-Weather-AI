@@ -57,15 +57,16 @@
     height: 85vh;
     border: 1px solid var(--border-color);
     animation: slideUp 0.3s ease;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    overflow: hidden;
 }
 
 .map-modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.5rem 2rem;
+    padding: 1rem 2rem;
     border-bottom: 1px solid var(--border-color);
 }
 
@@ -77,22 +78,21 @@
 }
 
 .map-modal-body {
-    flex: 1;
-    padding: 1.5rem;
-    overflow: hidden;
+    padding: 1rem 1.5rem;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
 }
 
 .map-instruction {
     color: var(--text-secondary);
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
     text-align: center;
-    font-size: 0.95rem;
-    padding: 0.75rem;
-    background: rgba(124, 77, 255, 0.1);
+    font-size: 0.9rem;
+    padding: 0.5rem;
+    background: rgba(124, 77, 255, 0.05);
     border-radius: 10px;
-    border: 1px solid rgba(124, 77, 255, 0.2);
+    border: 1px solid rgba(124, 77, 255, 0.1);
 }
 
 .map-instruction i {
@@ -101,13 +101,13 @@
 }
 
 #worldMap {
-    flex: 1;
+    height: 400px;
+    min-height: 350px;
     background: var(--bg-card);
     border-radius: 12px;
     border: 1px solid var(--border-color);
     position: relative;
     overflow: hidden;
-    min-height: 500px;
 }
 
 /* Leaflet Map Customization */

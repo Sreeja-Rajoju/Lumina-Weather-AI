@@ -1,33 +1,58 @@
-# Python
+# Node / Frontend
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+.vercel/
+
+# Python / Backend
 __pycache__/
 *.py[cod]
 *$py.class
 *.pyc
+.pytest_cache/
+htmlcov/
+.tox/
+.nox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.python-version
 
 # Virtual Environments
 venv/
 .venv/
 env/
+bin/
+lib/
+include/
 
 # Secrets & Environment
 .env
-*.env
-
-# OS Files
-.DS_Store
-Thumbs.db
-desktop.ini
+.env.*
+!.env.example
+secrets.json
 
 # IDE / Editor
 .vscode/
 .idea/
 *.swp
 *.swo
+.project
+.pydevproject
+.settings/
 
-# Logs
-*.log
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
 
-# Distribution / Packaging
-dist/
-build/
-*.egg-info/
+# Build Artifacts
+target/
+out/
+bin/
+obj/
