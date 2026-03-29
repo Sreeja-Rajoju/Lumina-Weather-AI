@@ -196,27 +196,6 @@ function App() {
                         fetchWeather({ city });
                         setActiveSection('dashboard');
                     }}
-                    onGeoLocate={() => {
-                        setActiveSection('dashboard');
-                        if (!navigator.geolocation) {
-                            alert("Geolocation is not supported by your browser.");
-                            return;
-                        }
-                        navigator.geolocation.getCurrentPosition(
-                            (pos) => fetchWeather({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-                            (err) => {
-                                let msg = "Location error: ";
-                                switch(err.code) {
-                                    case err.PERMISSION_DENIED: msg += "Permission Denied"; break;
-                                    case err.POSITION_UNAVAILABLE: msg += "Position Unavailable"; break;
-                                    case err.TIMEOUT: msg += "Location Timeout"; break;
-                                    default: msg += "Unknown Error";
-                                }
-                                alert(msg);
-                            },
-                            { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-                        );
-                    }}
                     onMapOpen={() => setIsMapOpen(true)}
                 />
 

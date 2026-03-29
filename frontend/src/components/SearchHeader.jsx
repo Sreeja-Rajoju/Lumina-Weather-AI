@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export function SearchHeader({ onSearch, onGeoLocate, onMapOpen }) {
+export function SearchHeader({ onSearch, onMapOpen }) {
     const [query, setQuery] = useState('');
 
     const handleSubmit = (e) => {
@@ -28,11 +28,6 @@ export function SearchHeader({ onSearch, onGeoLocate, onMapOpen }) {
                         autoComplete="off"
                     />
                 </form>
-                <div className="search-actions">
-                    <button className="location-btn" onClick={onGeoLocate} title="Use my current location">
-                        <i className="fas fa-location-crosshairs"></i>
-                    </button>
-                </div>
             </div>
             <button className="map-btn" id="mapBtn" onClick={onMapOpen} title="Open World Map Explorer">
                 <i className="fas fa-map-marked-alt"></i>
