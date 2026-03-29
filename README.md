@@ -40,7 +40,7 @@ This project is optimized for a **dual-service deployment**:
 - **Repo Root**: `backend/`
 - **Build**: `pip install -r backend/requirements.txt`
 - **Start**: `gunicorn backend.app:app`
-- **Env Vars**: Add `OPENWEATHER_API_KEY` and `GEMINI_API_KEY`.
+- **Env Vars**: Add `OPENWEATHER_API_KEY` and `GEMINI_API_KEY` (see `backend/.env.example` for reference).
 - **Note**: Once deployed, copy your Render URL (e.g., `https://api.onrender.com`).
 
 ### 2. Frontend (Vercel)
